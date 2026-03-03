@@ -68,7 +68,6 @@ WSGI_APPLICATION = 'dressify.wsgi.application'
 
 # DATABASE CONFIGURATION
 if IS_RENDER:
-    # PostgreSQL (Production - Render)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -80,7 +79,6 @@ if IS_RENDER:
         }
     }
 else:
-    # MySQL (Local Development)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
@@ -89,7 +87,6 @@ else:
             'PASSWORD': '',
             'HOST': 'localhost',
             'PORT': '3306',
-            'OPTIONS': {'charset': 'utf8mb4'},
         }
     }
 
