@@ -3,11 +3,20 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-dressify-change-this-in-production-2024'
-DEBUG = True
+# Detect if running on Render
+IS_RENDER = os.environ.get("RENDER") == "true"
+
+# SECURITY
+SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key")
+
+DEBUG = not IS_RENDER
+
 ALLOWED_HOSTS = ['*']
 
+
+# APPLICATIONS
 INSTALLED_APPS = [
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -16,6 +25,8 @@ INSTALLED_APPS = [
     'app',
 ]
 
+
+# MIDDLEWARE
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -27,58 +38,92 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+
 ROOT_URLCONF = 'dressify.urls'
+
 AUTH_USER_MODEL = 'app.User'
 
-TEMPLATES = [{
-    'BACKEND': 'django.template.backends.django.DjangoTemplates',
-    'DIRS': [BASE_DIR / 'app' / 'templates'],
-    'APP_DIRS': True,
-    'OPTIONS': {
-        'context_processors': [
-            'django.template.context_processors.debug',
-            'django.template.context_processors.request',
-            'django.contrib.auth.context_processors.auth',
-            'django.contrib.messages.context_processors.messages',
-            'app.context_processors.nav_categories',
-        ],
+
+# TEMPLATES
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'app' / 'templates'],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+                'app.context_processors.nav_categories',
+            ],
+        },
     },
-}]
+]
+
 
 WSGI_APPLICATION = 'dressify.wsgi.application'
 
 
-
-# ── DATABASE — MySQL (uncomment to use) ───────────────────────────────────────
-DATABASES = {
-    'default': {
-        'ENGINE':   'django.db.backends.mysql',
-        'NAME':     'dressify_db',
-        'USER':     'root',
-        'PASSWORD': '',
-        'HOST':     'localhost',
-        'PORT':     '3306',
-        'OPTIONS':  {'charset': 'utf8mb4'},
+# DATABASE CONFIGURATION
+if IS_RENDER:
+    # PostgreSQL (Production - Render)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME'),
+            'USER': os.environ.get('DB_USER'),
+            'PASSWORD': os.environ.get('DB_PASSWORD'),
+            'HOST': os.environ.get('DB_HOST'),
+            'PORT': os.environ.get('DB_PORT'),
+        }
     }
-}
+else:
+    # MySQL (Local Development)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'dressify_db',
+            'USER': 'root',
+            'PASSWORD': '',
+            'HOST': 'localhost',
+            'PORT': '3306',
+            'OPTIONS': {'charset': 'utf8mb4'},
+        }
+    }
 
-AUTH_PASSWORD_VALIDATORS = []  # disabled for dev — re-enable in production
 
+# PASSWORD VALIDATORS
+AUTH_PASSWORD_VALIDATORS = []
+
+
+# INTERNATIONALIZATION
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL  = '/static/'
+
+# STATIC FILES
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'app' / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-MEDIA_URL  = '/media/'
+
+# MEDIA FILES
+MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+
+# DEFAULT PRIMARY KEY
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# LOGIN SETTINGS
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
+
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
