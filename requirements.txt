@@ -1,0 +1,7 @@
+Django>=4.2,<5.0
+gunicorn>=21.0
+whitenoise>=6.5
+Pillow>=10.0
+mysqlclient>=2.2
+python-decouple>=3.8
+dj-database-url>=2.0

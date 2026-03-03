@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Dressify — Premium Fashion Marketplace{% endblock %}
+{% block content %}
+
+<!-- HERO BANNER -->
+<section class="hero-section">
+  <div class="container h-100">
+    <div class="row h-100 align-items-center">
+      <div class="col-lg-6 py-5">
+        <span class="badge hero-badge mb-3">New Collection 2024</span>
+        <h1 class="hero-title">Elevate Your<br><span class="text-primary">Everyday<br>Style</span></h1>
+        <p class="hero-sub">Discover the curated selection of high-fashion dresses tailored for every unique occasion and personality.</p>
+        <div class="d-flex gap-3 mt-4">
+          <a href="/products/" class="btn btn-primary-dark px-4 py-2">Shop the Collection</a>
+          <a href="/products/?sort=popular" class="btn btn-outline-dark px-4 py-2">View Lookbook</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SHOP BY CATEGORY -->
+<section class="py-5">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Shop by Category</h2>
+        <p class="text-muted small">Tailored styles for every member of the family.</p>
+      </div>
+      <a href="/products/" class="text-primary text-decoration-none small fw-semibold">Browse All →</a>
+    </div>
+    <div class="row g-3 mt-2">
+      {% for cat in categories %}
+      <div class="col-md-4">
+        <a href="/products/?category={{ cat.id }}" class="category-card">
+          <div class="category-card-inner">
+            {% if cat.image %}
+            <img src="{{ cat.image.url }}" alt="{{ cat.name }}" class="category-img">
+            {% else %}
+            <div class="category-img-placeholder"></div>
+            {% endif %}
+            <div class="category-overlay">
+              <h4 class="text-white fw-bold">{{ cat.name }}</h4>
+              <p class="text-white opacity-75 small">{{ cat.description|default:"Explore collection" }}</p>
+              <span class="btn btn-sm btn-outline-light mt-2">EXPLORE →</span>
+            </div>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- FEATURED PRODUCTS -->
+<section class="py-5 bg-light">
+  <div class="container">
+    <h2 class="section-title text-center mb-1">Featured Products</h2>
+    <div class="d-flex justify-content-center gap-3 mb-4 mt-3">
+      <button class="tab-pill active" onclick="filterTab('featured', this)">New Arrivals</button>
+      <button class="tab-pill" onclick="filterTab('bestsellers', this)">Best Sellers</button>
+      <button class="tab-pill" onclick="filterTab('offers', this)">Special Offers</button>
+    </div>
+    <div class="row g-4">
+      {% for product in featured %}
+      <div class="col-6 col-md-3">
+        <div class="product-card">
+          {% if product.badge %}
+          <span class="product-badge badge-{{ product.badge|lower }}">{{ product.badge }}</span>
+          {% endif %}
+          <a href="/wishlist/toggle/{{ product.id }}/" class="wishlist-btn"><i class="bi bi-heart"></i></a>
+          <a href="/products/{{ product.id }}/">
+            {% if product.image %}
+            <img src="{{ product.image.url }}" class="product-img" alt="{{ product.name }}">
+            {% else %}
+            <div class="product-img product-img-placeholder d-flex align-items-center justify-content-center bg-light">
+              <i class="bi bi-image text-muted fs-1"></i>
+            </div>
+            {% endif %}
+          </a>
+          <div class="product-body">
+            <div class="product-cat small text-muted mb-1">{{ product.category.name|upper }}</div>
+            <h6 class="product-name mb-1"><a href="/products/{{ product.id }}/" class="text-dark text-decoration-none">{{ product.name }}</a></h6>
+            <div class="d-flex align-items-center gap-2 mt-auto">
+              <span class="product-price">${{ product.price }}</span>
+              {% if product.old_price %}
+              <span class="text-muted text-decoration-line-through small">${{ product.old_price }}</span>
+              {% endif %}
+            </div>
+            <form action="/cart/add/{{ product.id }}/" method="POST" class="mt-2">
+              {% csrf_token %}
+              <input type="hidden" name="size" value="M">
+              <button type="submit" class="btn btn-add-cart w-100">
+                <i class="bi bi-bag-plus me-1"></i> Add to Cart
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-12 text-center py-4 text-muted">
+        <i class="bi bi-bag-x" style="font-size:3rem;"></i>
+        <p class="mt-2">No products yet. <a href="/admin-dashboard/products/">Add some!</a></p>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="text-center mt-5">
+      <a href="/products/" class="btn btn-outline-dark px-5">LOAD MORE PRODUCTS <i class="bi bi-arrow-repeat ms-2"></i></a>
+    </div>
+  </div>
+</section>
+
+<!-- NEWSLETTER -->
+<section class="newsletter-section py-5">
+  <div class="container">
+    <div class="newsletter-card text-center">
+      <h3 class="fw-bold mb-2">Join the Dressify Club</h3>
+      <p class="opacity-80 mb-4">Subscribe to get exclusive early access to new collections and a 15% discount on your first order.</p>
+      <div class="d-flex justify-content-center">
+        <div class="input-group newsletter-input" style="max-width:420px;">
+          <input class="form-control" placeholder="Enter your email address">
+          <button class="btn btn-dark">Subscribe</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+function filterTab(type, btn){
+  document.querySelectorAll('.tab-pill').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+</script>
+{% endblock %}

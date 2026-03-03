@@ -1,0 +1,107 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign In — Dressify</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="auth-page">
+<div class="auth-wrapper">
+  <!-- LEFT IMAGE PANEL -->
+  <div class="auth-image-panel d-none d-md-flex">
+    <div class="auth-image-overlay">
+      <h2 class="display-5 fw-bold text-white">Elegance<br>Redefined</h2>
+      <p class="text-white opacity-75 mt-2">Step into the world of premium fashion<br>and timeless style.</p>
+    </div>
+  </div>
+
+  <!-- RIGHT FORM PANEL -->
+  <div class="auth-form-panel">
+    <div class="auth-form-inner">
+      <div class="brand-mark mb-4">
+        <div class="brand-icon"><i class="bi bi-handbag-fill"></i></div>
+        <span class="fw-bold fs-5">LuxeThread</span>
+      </div>
+      <h3 class="fw-bold mb-1" style="font-family:'Playfair Display'">Welcome Back</h3>
+      <p class="text-muted small mb-4">Please enter your details to sign in to your account.</p>
+
+      {% if error %}
+      <div class="alert alert-danger py-2 small">{{ error }}</div>
+      {% endif %}
+
+      <form method="POST">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label fw-medium small">Email or Username</label>
+          <div class="input-group auth-input-group">
+            <span class="input-group-text"><i class="bi bi-envelope text-muted"></i></span>
+            <input name="username" type="text" class="form-control" placeholder="name@example.com" required autofocus>
+          </div>
+        </div>
+        <div class="mb-3">
+          <div class="d-flex justify-content-between">
+            <label class="form-label fw-medium small">Password</label>
+            <a href="#" class="small text-primary text-decoration-none">Forgot password?</a>
+          </div>
+          <div class="input-group auth-input-group">
+            <span class="input-group-text"><i class="bi bi-lock text-muted"></i></span>
+            <input name="password" type="password" id="passInput" class="form-control" placeholder="••••••••" required>
+            <button class="btn btn-outline-secondary" type="button" onclick="togglePass()">
+              <i class="bi bi-eye" id="eyeIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Admin Toggle -->
+        <div class="admin-toggle-card mb-4">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-semibold small">Administrator Access</div>
+              <div class="text-muted" style="font-size:0.75rem;">Toggle for admin dashboard login</div>
+            </div>
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input" type="checkbox" name="is_admin" id="adminToggle" role="switch">
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary-dark w-100 py-2 fw-semibold">
+          Sign In <i class="bi bi-box-arrow-in-right ms-2"></i>
+        </button>
+      </form>
+
+      <p class="text-center mt-4 small text-muted">
+        Don't have an account?
+        <a href="/signup/" class="text-primary fw-semibold text-decoration-none">Create an account</a>
+      </p>
+
+      <div class="divider-text my-3"><span>or continue with</span></div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary flex-grow-1 btn-sm social-btn">
+          <img src="https://www.google.com/favicon.ico" width="16" class="me-2"> Google
+        </button>
+        <button class="btn btn-facebook flex-grow-1 btn-sm social-btn">
+          <i class="bi bi-facebook me-2"></i> Facebook
+        </button>
+      </div>
+    </div>
+  
+      <div class="mt-3 p-2 rounded text-center" style="background:#fefce8;border:1px dashed #fde047;font-size:0.78rem;">
+        <strong>Admin login:</strong> username <code>admin</code> &nbsp;/&nbsp; password <code>admin</code>
+      </div>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function togglePass(){
+  const i=document.getElementById('passInput'),e=document.getElementById('eyeIcon');
+  i.type=i.type==='password'?'text':'password';
+  e.className=i.type==='password'?'bi bi-eye':'bi bi-eye-slash';
+}
+</script>
+</body></html>

@@ -1,0 +1,146 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Dashboard — DressAdmin{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h4 class="fw-bold mb-0">Dashboard Overview</h4>
+    <p class="text-muted small mb-0">Track your store performance and sales metrics.</p>
+  </div>
+</div>
+
+<!-- STAT CARDS -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div class="stat-icon bg-blue-light"><i class="bi bi-people text-primary"></i></div>
+        <span class="stat-change text-success small">↑ 12.5%</span>
+      </div>
+      <div class="stat-value mt-3">{{ total_users|default:"0" }}</div>
+      <div class="stat-label">Total Users</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div class="stat-icon bg-purple-light"><i class="bi bi-bag text-purple"></i></div>
+        <span class="stat-change text-success small">↑ 8.2%</span>
+      </div>
+      <div class="stat-value mt-3">{{ total_orders|default:"0" }}</div>
+      <div class="stat-label">Total Orders</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div class="stat-icon bg-green-light"><i class="bi bi-cash-coin text-green"></i></div>
+        <span class="stat-change text-danger small">↘ 2.4%</span>
+      </div>
+      <div class="stat-value mt-3">${{ total_revenue|default:"0" }}</div>
+      <div class="stat-label">Total Revenue</div>
+    </div>
+  </div>
+</div>
+
+<!-- CHARTS ROW -->
+<div class="row g-3 mb-4">
+  <div class="col-lg-7">
+    <div class="chart-card">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0">Monthly Sales Performance</h6>
+        <select class="form-select form-select-sm" style="width:140px;">
+          <option>Last 6 Months</option>
+          <option>Last 12 Months</option>
+        </select>
+      </div>
+      <canvas id="salesChart" height="200"></canvas>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="chart-card">
+      <h6 class="fw-bold mb-3">Top Categories</h6>
+      <div class="mb-3">
+        <div class="d-flex justify-content-between small mb-1"><span>Summer Dresses</span><span class="fw-bold">42%</span></div>
+        <div class="progress" style="height:8px;"><div class="progress-bar bg-primary" style="width:42%"></div></div>
+      </div>
+      <div class="mb-3">
+        <div class="d-flex justify-content-between small mb-1"><span>Evening Gowns</span><span class="fw-bold">28%</span></div>
+        <div class="progress" style="height:8px;"><div class="progress-bar" style="width:28%;background:#7c3aed;"></div></div>
+      </div>
+      <div class="mb-3">
+        <div class="d-flex justify-content-between small mb-1"><span>Casual Wear</span><span class="fw-bold">20%</span></div>
+        <div class="progress" style="height:8px;"><div class="progress-bar bg-success" style="width:20%"></div></div>
+      </div>
+      <div class="mb-3">
+        <div class="d-flex justify-content-between small mb-1"><span>Bridal</span><span class="fw-bold">10%</span></div>
+        <div class="progress" style="height:8px;"><div class="progress-bar bg-warning" style="width:10%"></div></div>
+      </div>
+      <a href="/admin-dashboard/products/" class="btn btn-outline-secondary btn-sm w-100 mt-2">View Detailed Report</a>
+    </div>
+  </div>
+</div>
+
+<!-- RECENT ORDERS -->
+<div class="admin-table-card">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h6 class="fw-bold mb-0">Recent Orders</h6>
+    <a href="/admin-dashboard/orders/" class="text-primary small text-decoration-none">View All Orders</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr><th>ORDER ID</th><th>CUSTOMER</th><th>PRODUCT</th><th>AMOUNT</th><th>STATUS</th><th>DATE</th><th>ACTIONS</th></tr>
+      </thead>
+      <tbody>
+        {% for order in recent_orders %}
+        <tr>
+          <td class="fw-semibold text-muted small">#ORD-{{ order.id }}</td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div class="user-initials-sm">{{ order.user.username|first|upper }}</div>
+              <span class="small fw-medium">{{ order.user.get_full_name|default:order.user.username }}</span>
+            </div>
+          </td>
+          <td class="small text-muted">{{ order.items.first.product.name|default:"—"|truncatechars:30 }}</td>
+          <td class="fw-semibold">${{ order.total_amount }}</td>
+          <td>
+            {% if order.status == 'Delivered' %}<span class="status-dot delivered">● Delivered</span>
+            {% elif order.status == 'Shipped' %}<span class="status-dot shipped">● Shipped</span>
+            {% elif order.status == 'Processing' %}<span class="status-dot processing">● Processing</span>
+            {% elif order.status == 'Cancelled' %}<span class="status-dot cancelled">● Cancelled</span>
+            {% else %}<span class="status-dot pending">● Pending</span>{% endif %}
+          </td>
+          <td class="small text-muted">{{ order.created_at|date:"M d, Y" }}</td>
+          <td><button class="btn btn-icon-xs"><i class="bi bi-three-dots-vertical"></i></button></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted py-4">No orders yet</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const ctx = document.getElementById('salesChart').getContext('2d');
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: ['JAN','FEB','MAR','APR','MAY','JUN'],
+    datasets: [{
+      data: [3200,4100,3800,6500,4900,5800],
+      backgroundColor: (ctx) => ctx.dataIndex === 3 ? '#2563eb' : '#bfdbfe',
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    plugins:{legend:{display:false}},
+    scales:{y:{display:false},x:{grid:{display:false}}},
+    responsive:true, maintainAspectRatio:false,
+  }
+});
+</script>
+{% endblock %}

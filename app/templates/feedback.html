@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Feedback — Dressify{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+      <div class="feedback-card">
+        <!-- Product being reviewed -->
+        <div class="feedback-product-row mb-4">
+          <div class="feedback-product-img bg-light rounded"></div>
+          <div>
+            <div class="text-primary small fw-semibold letter-spacing-wide">CURRENTLY REVIEWING</div>
+            <h4 class="fw-bold mb-1">Your Experience</h4>
+            <p class="text-muted small mb-0">Your feedback helps us and thousands of other customers make better decisions.</p>
+            <div class="d-flex align-items-center gap-1 mt-1">
+              <i class="bi bi-patch-check-fill text-primary" style="font-size:.8rem;"></i>
+              <span class="small text-muted">Verified Purchase</span>
+            </div>
+          </div>
+        </div>
+
+        <form method="POST">
+          {% csrf_token %}
+          <div class="mb-4 text-center">
+            <h6 class="fw-semibold mb-3">Overall Rating</h6>
+            <div class="star-rating-interactive" id="starRating">
+              {% for i in "12345" %}
+              <i class="bi bi-star-fill fs-2 star-interactive" data-val="{{ forloop.counter }}" style="color:#d1d5db;cursor:pointer;"></i>
+              {% endfor %}
+            </div>
+            <div class="text-muted small mt-1" id="ratingLabel">"Great product, highly recommend!"</div>
+            <input type="hidden" name="rating" id="ratingInput" value="4">
+          </div>
+
+          <!-- Community Consensus -->
+          <div class="consensus-card mb-4">
+            <div class="row align-items-center">
+              <div class="col-4">
+                <div class="fw-bold mb-1">Community Consensus</div>
+                <div class="display-6 fw-bold text-primary">4.8</div>
+                <div class="text-muted small">/ 5.0</div>
+                <div class="d-flex gap-1 my-1">{% for i in "12345" %}<i class="bi bi-star-fill text-warning" style="font-size:.7rem;"></i>{% endfor %}</div>
+                <div class="text-muted" style="font-size:.75rem;">Based on 2,458 reviews</div>
+              </div>
+              <div class="col-8">
+                <!-- Static bars -->
+                <div class="d-flex align-items-center gap-2 mb-1"><span class="small">5</span><div class="progress flex-grow-1" style="height:8px;border-radius:4px;"><div class="progress-bar bg-primary" style="width:82%"></div></div><span class="small text-muted">82%</span></div>
+                <div class="d-flex align-items-center gap-2 mb-1"><span class="small">4</span><div class="progress flex-grow-1" style="height:8px;border-radius:4px;"><div class="progress-bar bg-primary" style="width:12%"></div></div><span class="small text-muted">12%</span></div>
+                <div class="d-flex align-items-center gap-2 mb-1"><span class="small">3</span><div class="progress flex-grow-1" style="height:8px;border-radius:4px;"><div class="progress-bar bg-primary" style="width:4%"></div></div><span class="small text-muted">4%</span></div>
+                <div class="d-flex align-items-center gap-2 mb-1"><span class="small">2</span><div class="progress flex-grow-1" style="height:8px;border-radius:4px;"><div class="progress-bar bg-primary" style="width:1%"></div></div><span class="small text-muted">1%</span></div>
+                <div class="d-flex align-items-center gap-2"><span class="small">1</span><div class="progress flex-grow-1" style="height:8px;border-radius:4px;"><div class="progress-bar bg-primary" style="width:1%"></div></div><span class="small text-muted">1%</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Add a headline</label>
+            {{ form.headline }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Add a written review</label>
+            {{ form.message }}
+          </div>
+          <div class="mb-4">
+            <label class="form-label small fw-semibold">Add a photo or video</label>
+            <div class="upload-zone">
+              <i class="bi bi-camera fs-4 text-muted"></i>
+              <div class="text-muted small mt-1">Click to upload or drag and drop</div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary-dark w-100 py-2 fw-semibold">
+            Submit Feedback <i class="bi bi-arrow-right ms-2"></i>
+          </button>
+          <p class="text-muted text-center mt-3" style="font-size:.72rem;">By submitting, you agree to our Terms of Use and Privacy Policy. Your review will be public and might be used in marketing materials.</p>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const labels=['Poor','Not great','Okay','Good','Excellent!'];
+const stars=document.querySelectorAll('.star-interactive');
+const inp=document.getElementById('ratingInput');
+const lbl=document.getElementById('ratingLabel');
+function setStars(val){
+  stars.forEach((s,i)=>{s.style.color=i<val?'#f59e0b':'#d1d5db';});
+  inp.value=val;lbl.textContent='"'+labels[val-1]+'"';
+}
+setStars(4);
+stars.forEach(s=>{
+  s.addEventListener('click',()=>setStars(+s.dataset.val));
+  s.addEventListener('mouseover',()=>setStars(+s.dataset.val));
+});
+document.getElementById('starRating').addEventListener('mouseleave',()=>setStars(+inp.value));
+</script>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Edit Product — DressAdmin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h4 class="fw-bold mb-0">Edit Product</h4><p class="text-muted small mb-0">{{ product.name }}</p></div>
+  <a href="/admin-dashboard/products/" class="btn btn-outline-secondary btn-sm">← Back</a>
+</div>
+<div class="admin-table-card" style="max-width:700px;">
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row g-3">
+      <div class="col-12"><label class="small fw-semibold">Product Name</label>{{ form.name }}</div>
+      <div class="col-sm-6"><label class="small fw-semibold">Price ($)</label>{{ form.price }}</div>
+      <div class="col-sm-6"><label class="small fw-semibold">Old Price ($)</label>{{ form.old_price }}</div>
+      <div class="col-sm-6"><label class="small fw-semibold">Category</label>{{ form.category }}</div>
+      <div class="col-sm-6"><label class="small fw-semibold">Stock</label>{{ form.stock }}</div>
+      <div class="col-12"><label class="small fw-semibold">Description</label>{{ form.description }}</div>
+      <div class="col-sm-6"><label class="small fw-semibold">Sizes</label>{{ form.sizes }}</div>
+      <div class="col-sm-6"><label class="small fw-semibold">Badge</label>{{ form.badge }}</div>
+      <div class="col-sm-6"><label class="small fw-semibold">Main Image</label>{{ form.image }}</div>
+      <div class="col-sm-3">
+        <label class="small fw-semibold">Active</label><br>{{ form.is_active }}
+      </div>
+      <div class="col-sm-3">
+        <label class="small fw-semibold">Featured</label><br>{{ form.is_featured }}
+      </div>
+    </div>
+    <div class="d-flex gap-3 mt-4">
+      <button type="submit" class="btn btn-primary-admin px-4">Save Changes</button>
+      <a href="/admin-dashboard/products/" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Products — DressAdmin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h4 class="fw-bold mb-0">Product Management</h4><p class="text-muted small mb-0">Manage your store inventory</p></div>
+  <a href="/admin-dashboard/products/" class="btn btn-primary-admin"><i class="bi bi-plus-lg me-1"></i>New Product</a>
+</div>
+
+<!-- STAT CARDS -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3"><div class="stat-card-sm"><div class="small text-muted">Total Products</div><div class="fw-bold fs-4">{{ total_products }}</div><div class="text-success small">↑ +12% from last month</div></div></div>
+  <div class="col-md-3"><div class="stat-card-sm"><div class="small text-muted">Active Stock</div><div class="fw-bold fs-4">{{ active_stock }}</div><div class="text-muted small">85% In Stock</div></div></div>
+  <div class="col-md-3"><div class="stat-card-sm"><div class="small text-muted">Out of Stock</div><div class="fw-bold fs-4 text-danger">{{ out_of_stock }}</div><div class="text-danger small">⚠ Action required</div></div></div>
+  <div class="col-md-3"><div class="stat-card-sm"><div class="small text-muted">Total Categories</div><div class="fw-bold fs-4">{{ categories|length }}</div><div class="text-muted small">Maintained by system</div></div></div>
+</div>
+
+<div class="row g-4">
+  <!-- ADD PRODUCT FORM -->
+  <div class="col-lg-4">
+    <div class="admin-table-card">
+      <h6 class="fw-bold mb-1">Add New Product</h6>
+      <p class="text-muted small mb-3">Fill in the details to list a new item</p>
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}<input type="hidden" name="action" value="add">
+        <div class="mb-2"><label class="small fw-semibold">Product Name</label>{{ form.name }}</div>
+        <div class="row g-2 mb-2">
+          <div class="col-6"><label class="small fw-semibold">Price ($)</label>{{ form.price }}</div>
+          <div class="col-6"><label class="small fw-semibold">Category</label>{{ form.category }}</div>
+        </div>
+        <div class="mb-2"><label class="small fw-semibold">Description</label>{{ form.description }}</div>
+        <div class="mb-2"><label class="small fw-semibold">Stock</label>{{ form.stock }}</div>
+        <div class="mb-2"><label class="small fw-semibold">Sizes (comma-separated)</label>{{ form.sizes }}</div>
+        <div class="mb-3">
+          <label class="small fw-semibold">Product Image</label>
+          <div class="upload-zone-sm">
+            <input type="file" name="image" class="d-none" id="imgInput" accept="image/*">
+            <label for="imgInput" class="d-flex flex-column align-items-center cursor-pointer m-0 w-100">
+              <i class="bi bi-cloud-upload fs-4 text-muted"></i>
+              <span class="small text-muted">Click to upload or drag and drop</span>
+              <span class="text-muted" style="font-size:.7rem;">PNG, JPG up to 5MB</span>
+            </label>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary-admin w-100">Create Product Listing</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- PRODUCT TABLE -->
+  <div class="col-lg-8">
+    <div class="admin-table-card">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0">Existing Products</h6>
+        <div class="d-flex gap-2">
+          <input class="form-control form-control-sm" placeholder="Search products..." style="width:180px;">
+          <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-funnel"></i></button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead><tr><th>PRODUCT</th><th>CATEGORY</th><th>PRICE</th><th>STOCK</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
+          <tbody>
+            {% for p in products %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  {% if p.image %}
+                  <img src="{{ p.image.url }}" width="40" height="40" style="object-fit:cover;border-radius:8px;">
+                  {% else %}
+                  <div class="product-thumb-placeholder"><i class="bi bi-image text-muted"></i></div>
+                  {% endif %}
+                  <span class="fw-semibold small">{{ p.name }}</span>
+                </div>
+              </td>
+              <td class="small text-muted">{{ p.category.name }}</td>
+              <td class="fw-semibold">${{ p.price }}</td>
+              <td>
+                {% if p.stock == 0 %}<span class="text-danger small">{{ p.stock }}</span>
+                {% elif p.stock <= 5 %}<span class="text-warning small">{{ p.stock }}</span>
+                {% else %}<span class="small">{{ p.stock }}</span>{% endif %}
+              </td>
+              <td>
+                {% if p.stock == 0 %}<span class="badge bg-danger-subtle text-danger">OUT OF STOCK</span>
+                {% elif p.stock <= 5 %}<span class="badge bg-warning-subtle text-warning">LOW STOCK</span>
+                {% elif p.is_active %}<span class="badge bg-success-subtle text-success">ACTIVE</span>
+                {% else %}<span class="badge bg-secondary-subtle text-secondary">INACTIVE</span>{% endif %}
+              </td>
+              <td>
+                <div class="d-flex gap-1">
+                  <a href="/admin-dashboard/products/{{ p.id }}/edit/" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                  <form method="POST" class="d-inline" onsubmit="return confirm('Delete {{ p.name }}?')">
+                    {% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="product_id" value="{{ p.id }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center text-muted py-4">No products yet. Add your first product!</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mt-2">
+        <span class="small text-muted">
+          {% if is_paginated %}
+          Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} results
+          {% else %}
+          Showing 1 to {{ products|length }} of {{ total_products }} results
+          {% endif %}
+        </span>
+        {% if is_paginated %}
+        <nav>
+          <ul class="pagination pagination-sm mb-0">
+            {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">‹</a></li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">‹</span></li>
+            {% endif %}
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+            {% endfor %}
+            {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">›</a></li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">›</span></li>
+            {% endif %}
+          </ul>
+        </nav>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

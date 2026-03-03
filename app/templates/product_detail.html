@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} — Dressify{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      <li class="breadcrumb-item"><a href="/products/">Dresses</a></li>
+      <li class="breadcrumb-item"><a href="/products/?category={{ product.category.id }}">{{ product.category.name }}</a></li>
+      <li class="breadcrumb-item active">{{ product.name }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-5">
+    <!-- IMAGES -->
+    <div class="col-lg-6">
+      <div class="d-flex gap-3">
+        <!-- Thumbnails -->
+        <div class="d-flex flex-column gap-2">
+          {% if product.image %}<div class="thumb-img active" onclick="setMain(this,'{{ product.image.url }}')"><img src="{{ product.image.url }}" class="w-100 h-100 rounded" style="object-fit:cover;"></div>{% endif %}
+          {% if product.image2 %}<div class="thumb-img" onclick="setMain(this,'{{ product.image2.url }}')"><img src="{{ product.image2.url }}" class="w-100 h-100 rounded" style="object-fit:cover;"></div>{% endif %}
+          {% if product.image3 %}<div class="thumb-img" onclick="setMain(this,'{{ product.image3.url }}')"><img src="{{ product.image3.url }}" class="w-100 h-100 rounded" style="object-fit:cover;"></div>{% endif %}
+        </div>
+        <!-- Main Image -->
+        <div class="main-product-img flex-grow-1">
+          {% if product.image %}
+          <img src="{{ product.image.url }}" id="mainImg" class="w-100 rounded-3" style="object-fit:cover;max-height:520px;" alt="{{ product.name }}">
+          {% else %}
+          <div class="w-100 bg-light rounded-3 d-flex align-items-center justify-content-center" style="height:520px;"><i class="bi bi-image text-muted" style="font-size:5rem;"></i></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- PRODUCT INFO -->
+    <div class="col-lg-6">
+      <span class="small text-primary fw-semibold letter-spacing-wide">{{ product.category.name|upper }} COLLECTION</span>
+      <h2 class="mt-1 mb-2 fw-bold" style="font-family:'Playfair Display'">{{ product.name }}</h2>
+
+      <!-- Rating -->
+      <div class="d-flex align-items-center gap-2 mb-3">
+        <div class="stars-row">
+          {% for i in "12345" %}
+          <i class="bi bi-star{% if forloop.counter <= product.rating|floatformat:0|add:"0" %}-fill{% endif %} text-warning"></i>
+          {% endfor %}
+        </div>
+        <span class="text-muted small">({{ product.review_count }} Customer Reviews)</span>
+      </div>
+
+      <!-- Price -->
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <span class="detail-price">${{ product.price }}</span>
+        {% if product.old_price %}
+        <span class="text-muted text-decoration-line-through fs-5">${{ product.old_price }}</span>
+        <span class="badge bg-danger">SAVE {{ product.discount_percent }}%</span>
+        {% endif %}
+      </div>
+
+      <div class="mb-4">
+        <div class="small text-muted text-uppercase fw-semibold mb-2">Description</div>
+        <p class="text-muted">{{ product.description }}</p>
+      </div>
+
+      <form action="/cart/add/{{ product.id }}/" method="POST" id="addCartForm">
+        {% csrf_token %}
+        <!-- Size -->
+        <div class="mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="small text-uppercase fw-semibold">Select Size</div>
+            <a href="#" class="small text-primary text-decoration-none">Size Guide</a>
+          </div>
+          <div class="d-flex gap-2 flex-wrap">
+            {% for s in product.sizes_list %}
+            <label class="size-option">
+              <input type="radio" name="size" value="{{ s }}" {% if forloop.first %}checked{% endif %} class="d-none">
+              <span class="size-label">{{ s }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Quantity -->
+        <div class="mb-4">
+          <div class="small text-uppercase fw-semibold mb-2">Quantity</div>
+          <div class="qty-control">
+            <button type="button" onclick="adjustQty(-1)"><i class="bi bi-dash"></i></button>
+            <input type="number" name="quantity" id="qtyInput" value="1" min="1" max="{{ product.stock }}" class="qty-input">
+            <button type="button" onclick="adjustQty(1)"><i class="bi bi-plus"></i></button>
+          </div>
+        </div>
+
+        <div class="d-flex gap-3">
+          <button type="submit" class="btn btn-outline-primary-dark flex-grow-1 py-2">
+            <i class="bi bi-bag-plus me-2"></i>Add to Cart
+          </button>
+          <button type="button" onclick="buyNow()" class="btn btn-primary-dark flex-grow-1 py-2">Buy Now</button>
+        </div>
+      </form>
+
+      <form action="/buy/{{ product.id }}/" method="POST" id="buyNowForm">{% csrf_token %}<input type="hidden" name="size" id="buySize" value="M"></form>
+
+      <div class="d-flex gap-4 mt-3 pt-3 border-top">
+        <div class="d-flex align-items-center gap-2 text-muted small">
+          <i class="bi bi-truck fs-5 text-primary"></i> Free Express Shipping
+        </div>
+        <div class="d-flex align-items-center gap-2 text-muted small">
+          <i class="bi bi-arrow-counterclockwise fs-5 text-primary"></i> 30-Day Easy Returns
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RATINGS & REVIEWS -->
+  <div class="reviews-section mt-5">
+    <h4 class="fw-bold mb-4">Ratings &amp; Reviews</h4>
+    <div class="row">
+      <div class="col-md-3">
+        <div class="text-center">
+          <div class="display-4 fw-bold">{{ product.rating }}</div>
+          <div class="stars-row justify-content-center my-2">
+            {% for i in "12345" %}
+            <i class="bi bi-star{% if forloop.counter <= product.rating|floatformat:0|add:"0" %}-fill{% endif %} text-warning fs-5"></i>
+            {% endfor %}
+          </div>
+          <div class="text-muted small">Based on {{ product.review_count }} reviews</div>
+        </div>
+      </div>
+      <div class="col-md-9">
+        {% for pct, lbl in rating_bars %}
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="small text-muted" style="width:12px;">{{ lbl }}</span>
+          <div class="progress flex-grow-1" style="height:6px;"><div class="progress-bar bg-primary" style="width:{{ pct }}%"></div></div>
+          <span class="small text-muted" style="width:35px;">{{ pct }}%</span>
+        </div>
+        {% endfor %}
+        <!-- Static bars for now -->
+        <div class="d-flex align-items-center gap-2 mb-1"><span class="small text-muted" style="width:12px;">5</span><div class="progress flex-grow-1" style="height:6px;"><div class="progress-bar bg-primary" style="width:80%"></div></div><span class="small text-muted">80%</span></div>
+        <div class="d-flex align-items-center gap-2 mb-1"><span class="small text-muted" style="width:12px;">4</span><div class="progress flex-grow-1" style="height:6px;"><div class="progress-bar bg-primary" style="width:12%"></div></div><span class="small text-muted">12%</span></div>
+        <div class="d-flex align-items-center gap-2 mb-1"><span class="small text-muted" style="width:12px;">3</span><div class="progress flex-grow-1" style="height:6px;"><div class="progress-bar bg-primary" style="width:5%"></div></div><span class="small text-muted">5%</span></div>
+        <div class="d-flex align-items-center gap-2 mb-1"><span class="small text-muted" style="width:12px;">2</span><div class="progress flex-grow-1" style="height:6px;"><div class="progress-bar bg-primary" style="width:1%"></div></div><span class="small text-muted">1%</span></div>
+        <div class="d-flex align-items-center gap-2"><span class="small text-muted" style="width:12px;">1</span><div class="progress flex-grow-1" style="height:6px;"><div class="progress-bar bg-primary" style="width:2%"></div></div><span class="small text-muted">2%</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function setMain(thumb, url){
+  document.getElementById('mainImg').src = url;
+  document.querySelectorAll('.thumb-img').forEach(t=>t.classList.remove('active'));
+  thumb.classList.add('active');
+}
+function adjustQty(d){
+  const i=document.getElementById('qtyInput'); i.value=Math.max(1,parseInt(i.value)+d);
+}
+function buyNow(){
+  const sel=document.querySelector('input[name="size"]:checked');
+  document.getElementById('buySize').value=sel?sel.value:'M';
+  document.getElementById('buyNowForm').submit();
+}
+document.querySelectorAll('.size-label').forEach(l=>{
+  l.addEventListener('click',function(){
+    document.querySelectorAll('.size-label').forEach(x=>x.classList.remove('selected'));
+    this.classList.add('selected');
+  });
+});
+</script>
+{% endblock %}

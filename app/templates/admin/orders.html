@@ -1,0 +1,75 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Orders — DressAdmin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h4 class="fw-bold mb-0">Order Management</h4><p class="text-muted small mb-0">View and update all customer orders</p></div>
+  <div class="d-flex gap-2">
+    <a href="?status=" class="btn btn-sm {% if not status_filter %}btn-primary-admin{% else %}btn-outline-secondary{% endif %}">All</a>
+    {% for s,l in status_choices %}
+    <a href="?status={{ s }}" class="btn btn-sm {% if status_filter == s %}btn-primary-admin{% else %}btn-outline-secondary{% endif %}">{{ l }}</a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="admin-table-card">
+  {% if is_paginated %}
+  <div class="small text-muted mb-2">Showing {{ page_obj.start_index }}&ndash;{{ page_obj.end_index }} of {{ page_obj.paginator.count }} orders</div>
+  {% endif %}
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead><tr><th>ORDER ID</th><th>CUSTOMER</th><th>ITEMS</th><th>TOTAL</th><th>PAYMENT</th><th>DATE</th><th>STATUS</th></tr></thead>
+      <tbody>
+        {% for order in orders %}
+        <tr>
+          <td class="fw-semibold text-muted small">#ORD-{{ order.id }}</td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div class="user-initials-sm">{{ order.user.username|first|upper }}</div>
+              <div><div class="small fw-medium">{{ order.user.get_full_name|default:order.user.username }}</div><div class="text-muted" style="font-size:.7rem;">{{ order.user.email }}</div></div>
+            </div>
+          </td>
+          <td class="small text-muted">{{ order.items.count }} item{{ order.items.count|pluralize }}</td>
+          <td class="fw-bold">${{ order.total_amount }}</td>
+          <td><span class="badge bg-light text-dark border">{{ order.payment_method }}</span></td>
+          <td class="small text-muted">{{ order.created_at|date:"M d, Y" }}</td>
+          <td>
+            <form method="POST" class="d-inline">
+              {% csrf_token %}
+              <input type="hidden" name="order_id" value="{{ order.id }}">
+              <select name="status" class="form-select form-select-sm status-select status-{{ order.status|lower }}" onchange="this.form.submit()" style="width:130px;">
+                {% for s,l in status_choices %}
+                <option value="{{ s }}" {% if order.status == s %}selected{% endif %}>{{ l }}</option>
+                {% endfor %}
+              </select>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted py-4">No orders found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if is_paginated %}
+  <div class="d-flex justify-content-end mt-2">
+    <nav>
+      <ul class="pagination pagination-sm mb-0">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?{% if status_filter %}status={{ status_filter }}&{% endif %}page={{ page_obj.previous_page_number }}">‹</a></li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">‹</span></li>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+        <li class="page-item {% if page_obj.number == num %}active{% endif %}"><a class="page-link" href="?{% if status_filter %}status={{ status_filter }}&{% endif %}page={{ num }}">{{ num }}</a></li>
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?{% if status_filter %}status={{ status_filter }}&{% endif %}page={{ page_obj.next_page_number }}">›</a></li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">›</span></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

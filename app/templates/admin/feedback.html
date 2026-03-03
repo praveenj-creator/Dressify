@@ -1,0 +1,115 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Feedback — DressAdmin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h4 class="fw-bold mb-0">Feedback Management</h4></div>
+  <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-download me-1"></i>Export</button>
+</div>
+
+<!-- STATS -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3"><div class="stat-card-sm"><div class="small text-muted">Total Reviews</div><div class="fw-bold fs-4">{{ total_reviews }}</div><div class="text-success small">↑ 12% vs last month</div></div></div>
+  <div class="col-md-3"><div class="stat-card-sm"><div class="small text-muted">Average Rating</div><div class="fw-bold fs-4">{{ avg_rating }} / 5.0</div><div class="d-flex gap-1 mt-1">{% for i in "12345" %}<i class="bi bi-star-fill text-warning" style="font-size:.7rem;"></i>{% endfor %}</div></div></div>
+  <div class="col-md-3"><div class="stat-card-sm border-start border-warning border-3"><div class="small text-muted">Pending Replies</div><div class="fw-bold fs-4 text-warning">{{ pending_count }}</div><div class="text-warning small">Requires attention</div></div></div>
+  <div class="col-md-3"><div class="stat-card-sm border-start border-primary border-3"><div class="small text-muted">Positive Feedback</div><div class="fw-bold fs-4">94%</div><div class="text-muted small">CSAT score</div></div></div>
+</div>
+
+<!-- TABS + FILTER -->
+<div class="admin-table-card">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex gap-2">
+      <a href="?tab=all" class="btn btn-sm {% if tab == 'all' %}btn-dark{% else %}btn-outline-secondary{% endif %}">All Feedback</a>
+      <a href="?tab=pending" class="btn btn-sm {% if tab == 'pending' %}btn-dark{% else %}btn-outline-secondary{% endif %}">Pending</a>
+      <a href="?tab=replied" class="btn btn-sm {% if tab == 'replied' %}btn-dark{% else %}btn-outline-secondary{% endif %}">Replied</a>
+    </div>
+    <select class="form-select form-select-sm" style="width:140px;">
+      <option>Rating: All</option>
+      <option>5 Stars</option><option>4 Stars</option><option>3 Stars</option>
+    </select>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead><tr><th>CUSTOMER</th><th>PRODUCT REVIEWED</th><th>RATING</th><th>FEEDBACK</th><th>STATUS</th><th>ACTION</th></tr></thead>
+      <tbody>
+        {% for fb in feedbacks %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div class="user-avatar-md">{{ fb.user.first_name|first|upper|default:fb.user.username|first|upper }}</div>
+              <div><div class="fw-semibold small">{{ fb.user.get_full_name|default:fb.user.username }}</div><div class="text-muted" style="font-size:.72rem;">Verified Buyer</div></div>
+            </div>
+          </td>
+          <td>
+            {% if fb.product %}
+            <div class="small fw-medium">{{ fb.product.name }}</div>
+            <div class="text-muted" style="font-size:.72rem;">SKU: DR-{{ fb.product.id }}</div>
+            {% else %}<span class="text-muted small">General</span>{% endif %}
+          </td>
+          <td>
+            <div class="d-flex gap-1">
+              {% for i in "12345" %}<i class="bi bi-star{% if forloop.counter <= fb.rating %}-fill text-warning{% else %} text-muted{% endif %}" style="font-size:.75rem;"></i>{% endfor %}
+            </div>
+            <div class="text-muted" style="font-size:.72rem;">{{ fb.created_at|date:"M d, Y" }}</div>
+          </td>
+          <td class="small text-muted" style="max-width:220px;">{{ fb.message|truncatechars:80 }}</td>
+          <td>
+            {% if fb.is_replied %}<span class="badge bg-success-subtle text-success">Replied</span>
+            {% else %}<span class="badge bg-warning-subtle text-warning">Pending</span>{% endif %}
+          </td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#reply{{ fb.id }}">
+              {% if fb.is_replied %}View{% else %}Reply{% endif %}
+            </button>
+          </td>
+        </tr>
+        <!-- Reply Row -->
+        <tr class="collapse" id="reply{{ fb.id }}">
+          <td colspan="6">
+            <div class="reply-box">
+              <div class="small fw-bold mb-2">REPLY AS DRESSADMIN</div>
+              {% if fb.reply %}<div class="text-muted small mb-2">{{ fb.reply }}</div>{% endif %}
+              <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="feedback_id" value="{{ fb.id }}">
+                <textarea name="reply" class="form-control form-control-sm mb-2" rows="3" placeholder="Type your response to {{ fb.user.first_name|default:fb.user.username }}...">{{ fb.reply }}</textarea>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="text-muted" style="font-size:.72rem;"><i class="bi bi-envelope me-1"></i>{{ fb.user.first_name|default:fb.user.username }} will receive an email notification</span>
+                  <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#reply{{ fb.id }}">Cancel</button>
+                    <button type="submit" class="btn btn-sm btn-primary-admin">Send Response</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted py-4">No feedback yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if is_paginated %}
+  <div class="d-flex justify-content-end mt-2">
+    <nav>
+      <ul class="pagination pagination-sm mb-0">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?tab={{ tab }}&page={{ page_obj.previous_page_number }}">‹</a></li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">‹</span></li>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+        <li class="page-item {% if page_obj.number == num %}active{% endif %}"><a class="page-link" href="?tab={{ tab }}&page={{ num }}">{{ num }}</a></li>
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?tab={{ tab }}&page={{ page_obj.next_page_number }}">›</a></li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">›</span></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

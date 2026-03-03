@@ -1,0 +1,44 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Categories — DressAdmin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h4 class="fw-bold mb-0">Category Management</h4></div>
+</div>
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="admin-table-card">
+      <h6 class="fw-bold mb-3">Add Category</h6>
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}<input type="hidden" name="action" value="add">
+        <div class="mb-2"><label class="small fw-semibold">Name</label>{{ form.name }}</div>
+        <div class="mb-3"><label class="small fw-semibold">Description</label>{{ form.description }}</div>
+        <div class="mb-3"><label class="small fw-semibold">Image</label><input type="file" name="image" class="form-control"></div>
+        <button class="btn btn-primary-admin w-100">Add Category</button>
+      </form>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="admin-table-card">
+      <table class="table align-middle">
+        <thead><tr><th>CATEGORY</th><th>PRODUCTS</th><th>ACTION</th></tr></thead>
+        <tbody>
+          {% for cat in categories %}
+          <tr>
+            <td><span class="fw-semibold">{{ cat.name }}</span><div class="text-muted small">{{ cat.description|truncatechars:50 }}</div></td>
+            <td>{{ cat.product_count }} products</td>
+            <td>
+              <form method="POST" class="d-inline" onsubmit="return confirm('Delete {{ cat.name }}?')">
+                {% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="cat_id" value="{{ cat.id }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="text-center text-muted">No categories yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
