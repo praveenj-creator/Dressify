@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: dressify
+    env: python
+    region: oregon
+    plan: free
+    branch: main
+    buildCommand: bash build.sh
+    startCommand: gunicorn dressify.wsgi:application --bind 0.0.0.0:$PORT --workers 2
+    envVars:
+      - key: DEBUG
+        value: "false"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DJANGO_SETTINGS_MODULE
+        value: dressify.settings
+      - fromDatabase:
+          name: dressify-db
+          property: username
+        key: DB_USER
+      - fromDatabase:
+          name: dressify-db
+          property: password
+        key: DB_PASSWORD
+      - fromDatabase:
+          name: dressify-db
+          property: host
+        key: DB_HOST
+      - fromDatabase:
+          name: dressify-db
+          property: port
+        key: DB_PORT
+      - fromDatabase:
+          name: dressify-db
+          property: database
+        key: DB_NAME
+
+  - type: pserv
+    name: dressify-db
+    ipAllowList: []
+    plan: free
+    postgresVersion: 14

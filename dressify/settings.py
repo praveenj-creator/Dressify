@@ -7,11 +7,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 IS_RENDER = "RENDER_EXTERNAL_HOSTNAME" in os.environ
 
 # SECURITY
-SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key")
+SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key-dressify-2026")
 
 DEBUG = not IS_RENDER
 
-ALLOWED_HOSTS = ['*']
+# Allow localhost and render domain
+RENDERED_DOMAIN = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "localhost")
+ALLOWED_HOSTS = [RENDERED_DOMAIN, "localhost", "127.0.0.1", "*.onrender.com"]
 
 
 # APPLICATIONS
@@ -71,11 +73,15 @@ if IS_RENDER:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('DB_NAME'),
-            'USER': os.environ.get('DB_USER'),
-            'PASSWORD': os.environ.get('DB_PASSWORD'),
-            'HOST': os.environ.get('DB_HOST'),
-            'PORT': os.environ.get('DB_PORT'),
+            'NAME': os.environ.get('DB_NAME', 'dressify_db'),
+            'USER': os.environ.get('DB_USER', 'postgres'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+            'HOST': os.environ.get('DB_HOST', 'localhost'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
+            'CONN_MAX_AGE': 600,
+            'OPTIONS': {
+                'connect_timeout': 10,
+            }
         }
     }
 else:
@@ -106,7 +112,11 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'app' / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Use simple storage for Render to avoid compression issues
+if IS_RENDER:
+    STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
+else:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # MEDIA FILES
@@ -124,3 +134,31 @@ LOGIN_REDIRECT_URL = '/'
 
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
+
+# LOGGING CONFIGURATION
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'app': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+}
