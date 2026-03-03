@@ -4,7 +4,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Detect if running on Render
-IS_RENDER = os.environ.get("RENDER") == "true"
+IS_RENDER = "RENDER_EXTERNAL_HOSTNAME" in os.environ
 
 # SECURITY
 SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key")
