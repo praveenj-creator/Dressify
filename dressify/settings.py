@@ -95,9 +95,14 @@ if os.environ.get('DB_HOST'):  # Render provides DB_HOST
             'HOST': os.environ.get('DB_HOST', 'localhost'),
             'PORT': os.environ.get('DB_PORT', '5432'),
             'CONN_MAX_AGE': 600,
+            'ATOMIC_REQUESTS': False,
             'OPTIONS': {
-                'connect_timeout': 10,
+                'connect_timeout': 15,
                 'sslmode': 'require',
+                'keepalives': 1,
+                'keepalives_idle': 30,
+                'keepalives_interval': 10,
+                'keepalives_count': 5,
             }
         }
     }
@@ -151,23 +156,55 @@ LOGIN_REDIRECT_URL = '/'
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 
+# CACHING CONFIGURATION
+# Use in-memory cache for now, but can be upgraded to Redis on production
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'dressify-cache',
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000
+        }
+    }
+}
+
+# Cache timeout for nav_categories (2 hours)
+CACHE_MIDDLEWARE_SECONDS = 7200
+
+
 # LOGGING CONFIGURATION
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {asctime} {name} {message}',
+            'style': '{',
+        },
+    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
+            'formatter': 'simple',
         },
     },
     'root': {
         'handlers': ['console'],
-        'level': 'INFO',
+        'level': 'INFO' if not DEBUG else 'DEBUG',
     },
     'loggers': {
         'django': {
             'handlers': ['console'],
             'level': 'INFO',
+            'propagate': False,
+        },
+        'django.db': {
+            'handlers': ['console'],
+            'level': 'DEBUG' if not DEBUG else 'WARNING',
             'propagate': False,
         },
         'app': {
