@@ -1,17 +1,29 @@
 #!/usr/bin/env bash
 set -o errexit
 
-echo "=== Installing Python dependencies ==="
-pip install -r requirements.txt
+echo "=== Starting Dressify Build ==="
+echo ""
 
-echo "=== Creating required directories ==="
+echo "=== Step 1: Installing Python dependencies ==="
+pip install -r requirements.txt
+if [ $? -eq 0 ]; then echo "✓ Dependencies installed successfully"; else echo "✗ Failed to install dependencies"; exit 1; fi
+echo ""
+
+echo "=== Step 2: Creating required directories ==="
 mkdir -p media/products media/categories media/avatars
 mkdir -p staticfiles
+echo "✓ Directories created"
+echo ""
 
-echo "=== Collecting static files ==="
-python manage.py collectstatic --no-input --clear 2>&1 || echo "Warning: Static files collection had issues"
+echo "=== Step 3: Collecting static files ==="
+python manage.py collectstatic --noinput --clear
+if [ $? -eq 0 ]; then echo "✓ Static files collected"; else echo "⚠ Static files collection had warnings"; fi
+echo ""
 
-echo "=== Running database migrations ==="
-python manage.py migrate --noinput 2>&1 || echo "Warning: Migrations may have failed"
+echo "=== Step 4: Running database migrations ==="
+python manage.py migrate --noinput
+if [ $? -eq 0 ]; then echo "✓ Migrations completed"; else echo "⚠ Migration warnings (database may not be ready yet)"; fi
+echo ""
 
 echo "=== Build completed successfully ==="
+echo "Your app is ready to run!"

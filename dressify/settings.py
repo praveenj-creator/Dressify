@@ -3,17 +3,32 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Detect if running on Render
-IS_RENDER = "RENDER_EXTERNAL_HOSTNAME" in os.environ
-
 # SECURITY
 SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key-dressify-2026")
 
-DEBUG = not IS_RENDER
+# Debug setting - explicit from environment
+DEBUG = os.environ.get("DEBUG", "false").lower() == "true"
 
 # Allow localhost and render domain
 RENDERED_DOMAIN = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "localhost")
 ALLOWED_HOSTS = [RENDERED_DOMAIN, "localhost", "127.0.0.1", "*.onrender.com"]
+
+# CORS and CSRF Settings
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{RENDERED_DOMAIN}",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
+# Security headers for production
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = True
 
 
 # APPLICATIONS
@@ -69,7 +84,8 @@ WSGI_APPLICATION = 'dressify.wsgi.application'
 
 
 # DATABASE CONFIGURATION
-if IS_RENDER:
+# Use PostgreSQL on Render, MySQL for local development
+if os.environ.get('DB_HOST'):  # Render provides DB_HOST
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -81,18 +97,20 @@ if IS_RENDER:
             'CONN_MAX_AGE': 600,
             'OPTIONS': {
                 'connect_timeout': 10,
+                'sslmode': 'require',
             }
         }
     }
 else:
+    # Local MySQL configuration
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'dressify_db',
-            'USER': 'root',
-            'PASSWORD': '',
-            'HOST': 'localhost',
-            'PORT': '3306',
+            'NAME': os.environ.get('MYSQL_DB', 'dressify_db'),
+            'USER': os.environ.get('MYSQL_USER', 'root'),
+            'PASSWORD': os.environ.get('MYSQL_PASSWORD', ''),
+            'HOST': os.environ.get('MYSQL_HOST', 'localhost'),
+            'PORT': os.environ.get('MYSQL_PORT', '3306'),
         }
     }
 
@@ -112,11 +130,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'app' / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-# Use simple storage for Render to avoid compression issues
-if IS_RENDER:
-    STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
-else:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Use simple storage for production/Render to avoid compression issues during build
+STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
 
 
 # MEDIA FILES

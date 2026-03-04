@@ -35,8 +35,7 @@ services:
           property: database
         key: DB_NAME
 
-  - type: pserv
+  - type: postgres
     name: dressify-db
-    ipAllowList: []
     plan: free
-    postgresVersion: 14
+    version: 14
